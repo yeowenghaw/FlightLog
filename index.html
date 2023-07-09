@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        form
+        {
+            margin: auto;
+            text-align: center;
+        }
+
+        table {
+          font-family: arial, sans-serif;
+          border-collapse: collapse;
+          width: 100%;
+        }
+        
+        td, th {
+          border: 1px solid #dddddd;
+          text-align: left;
+          padding: 8px;
+        }
+        td:nth-child(even) {
+  background-color: #dddddd;
+}
+        </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlightLog</title>
+</head>
+
+<body onload="SwitchViews('login')">
+    <nav>
+        <button type="button" onclick="SwitchViews('login')">LogIn</button>
+        <button type="button" onclick="SwitchViews('flightlog')">FlightLog</button>
+    </nav>
+    <br>
+    <div id="content">
+
+
+    </div>
+    <script>
+        var views = {
+            'login' : '<form id="loginbox"><label for="username">Username</label><input type="text" id="username" name="username"><br><label for="password">Password</label><input type="password" id="password" name="password"><br><button type="button" onclick="LogIn()">Login</button></form>',
+            'flightlog' : '<table id="flightlogtable"><tr><th>flightID</th><th>tailNumber</th><th>takeoff</th><th>landing</th><th>Duration</th><th></th><th></th></tr></table><br><button type="button" onclick="DisplayAll()">DisplayAll</button><button type="button" onclick="NewEntry()">New</button><button type="button" onclick="SaveAll()" style="float:right">SaveAll</button>'
+        }
+
+    var content = document.getElementById('content');
+    var storeddata = [
+        ["flightID", "tailNumber", "takeoff", "landing", "Duration"],
+        ["test1", "test1", "test1", "test1", "test1"],
+        ["test2", "test2", "test2", "test2", "test2"]
+    ];
+
+    function SwitchViews(viewname)
+    {
+        // console.log(viewname);
+		switch(viewname){
+			case 'login':
+                //document.body.innerHTML = views.login;
+                content.innerHTML = views.login;
+				break;
+			case 'flightlog':
+            //document.body.innerHTML = views.flightlog;
+            content.innerHTML = views.flightlog;
+				break;
+			default:
+            //document.body.innerHTML = views.login;
+            content.innerHTML = views.login;
+				break;				
+		}
+    }
+
+    async function postJSON(data, url, methodtype) {
+  try {
+    const response = await fetch(url, {
+      method: methodtype,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+
+    const result = await response.json();
+    console.log("Success:", result);
+  } catch (error) {
+    console.error("Error:", error);
+  }
+}
+
+// const data = { username: "example" };
+// postJSON(data);
+
+
+    function LogIn()
+    {
+        var loginBox = document.getElementById('loginbox');
+        var loginUsername = document.getElementById('username');
+        var loginPassword = document.getElementById('password');
+
+        console.log(loginUsername.value);
+        console.log(loginPassword.value);
+
+        const logindata = {
+            username: loginUsername.value,
+            password: loginPassword.value 
+        };
+        //dummy function 
+        postJSON(logindata,"https://flightlog-backend.herokuapp.com/user/register","POST" );
+    }
+
+    function DisplayAll()
+    {
+        var flightlogtable = document.getElementById('flightlogtable');
+        DeleteAll();
+        storeddata.forEach(NewEntry);
+        console.log(flightlogtable);
+    }
+
+    function DeleteAll()
+    {
+        var flightlogtable = document.getElementById('flightlogtable');
+        while(flightlogtable.rows.length > 1)
+        {
+            console.log(flightlogtable.rows.length);
+            flightlogtable.deleteRow(1);
+        }
+    }
+
+    function SaveAll()
+    {
+        var flightlogtable = document.getElementById('flightlogtable');
+        var newarray =[];
+        
+        for(let i =1; i < flightlogtable.rows.length; i++)
+        {
+            var entry = [];
+            // // change all rows to text
+            SwitchToText(flightlogtable.rows[i]);
+            for(let j =0; j < 5; j++)
+            {
+                if(flightlogtable.rows[i].cells[j].textContent)
+                {
+                    entry.push(flightlogtable.rows[i].cells[j].textContent);
+                }
+                else
+                {
+                    entry.push("");
+                }                
+            }
+            newarray.push(entry);
+        }
+        console.log(newarray);
+        storeddata = newarray;
+    }
+
+    function NewEntry(arraydata= [" "," "," "," "," "])
+    {
+        var flightlogtable = document.getElementById('flightlogtable');
+        var tablerow = flightlogtable.insertRow(flightlogtable.length);
+        for (let i = 0; i < 7; i++) 
+        {
+            var createdcell = tablerow.insertCell(i);
+            if(arraydata[0]!= " ")
+            {
+                if(i < 5)
+                {
+                    createdcell.innerHTML = arraydata[i];
+                }
+            }
+            else
+            {
+                var createdinput = document.createElement("input");
+                createdinput.setAttribute("type", "text");
+                createdinput.setAttribute("value", "");
+                if(i < 5)
+                {
+                    createdcell.appendChild(createdinput);
+                }
+            }
+
+        }
+
+        let updatebutton = document.createElement("button");
+        updatebutton.innerText = "Update";
+        updatebutton.addEventListener('click', 
+        function()
+        {
+            UpdateRow(this.closest('tr').rowIndex);
+        }
+        );
+
+        let deletebutton = document.createElement("button");
+        deletebutton.innerText = "Delete";
+        deletebutton.addEventListener('click', 
+        function()
+        {
+            DeleteRow(this.closest('tr').rowIndex);
+        }
+        );
+
+        tablerow.cells[5].appendChild(updatebutton);
+        tablerow.cells[6].appendChild(deletebutton);
+    }
+
+    function UpdateRow(x)
+    {
+        var flightlogtable = document.getElementById('flightlogtable');
+
+      // 3 states, blank = no child, text = has child not input, input = has child and input
+      if(flightlogtable.rows[x].cells[0].hasChildNodes() &&
+      flightlogtable.rows[x].cells[0].firstChild.tagName == "INPUT")
+      {
+        SwitchToText(flightlogtable.rows[x]);
+        flightlogtable.rows[x].cells[5].firstChild.innerText = "Update";
+      }
+      else
+      {
+            SwitchToInput(flightlogtable.rows[x]);
+            flightlogtable.rows[x].cells[5].firstChild.innerText = "Save";
+      }
+    }
+
+    function SwitchToInput(row)
+    {
+        var flightlogtable = document.getElementById('flightlogtable');
+        for(let i = 0; i < 5; i++)
+        {
+            // has child node
+            if(row.cells[i].hasChildNodes())
+            {
+                // not input, has text within box
+                if(row.cells[i].firstChild.tagName != "INPUT")
+                {
+                    var createdinput = document.createElement("input");
+                    createdinput.setAttribute("type", "text");
+                    createdinput.setAttribute("value", row.cells[i].innerHTML);
+                    row.cells[i].innerHTML = "";
+                    row.cells[i].appendChild(createdinput);
+                }
+            }
+            //no child nodes, innerhtml is empty without text
+            else
+            {
+                var createdinput = document.createElement("input");
+                createdinput.setAttribute("type", "text");
+                createdinput.setAttribute("value", "");
+                row.cells[i].innerHTML = "";
+                row.cells[i].appendChild(createdinput);
+            }
+        }
+    }
+
+    function SwitchToText(row)
+    {
+        var flightlogtable = document.getElementById('flightlogtable');
+        for(let i = 0; i < 5; i++)
+        {
+            // has child node
+            if(row.cells[i].hasChildNodes())
+            {
+                // only need to toggle if the type is input
+                if(row.cells[i].firstChild.tagName == "INPUT")
+                {
+                    var newvalue = row.cells[i].firstChild.value;
+                    row.cells[i].innerHTML = "";
+                    row.cells[i].innerHTML = newvalue;
+                }
+            }
+        }
+    }
+
+    function DeleteRow(x)
+    {
+        var flightlogtable = document.getElementById('flightlogtable');
+      flightlogtable.deleteRow(x);
+    }
+
+
+    </script>
+
+
+</body>
+</html>
