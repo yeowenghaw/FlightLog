@@ -35,10 +35,7 @@
         <button type="button" onclick="SwitchViews('flightlog')">FlightLog</button>
     </nav>
     <br>
-    <div id="content">
-
-
-    </div>
+    <div id="content"></div>
     <script>
         var views = {
             'login' : '<form id="loginbox"><label for="username">Username</label><input type="text" id="username" name="username"><br><label for="password">Password</label><input type="password" id="password" name="password"><br><button type="button" onclick="LogIn()">Login</button></form>',
@@ -54,43 +51,36 @@
 
     function SwitchViews(viewname)
     {
-        // console.log(viewname);
 		switch(viewname){
 			case 'login':
-                //document.body.innerHTML = views.login;
                 content.innerHTML = views.login;
 				break;
 			case 'flightlog':
-            //document.body.innerHTML = views.flightlog;
             content.innerHTML = views.flightlog;
 				break;
 			default:
-            //document.body.innerHTML = views.login;
             content.innerHTML = views.login;
 				break;				
 		}
     }
 
-    async function postJSON(data, url, methodtype) {
-  try {
-    const response = await fetch(url, {
-      method: methodtype,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
+    // dummy function
+    //     async function postJSON(data, url, methodtype) {
+    //   try {
+    //     const response = await fetch(url, {
+    //       method: methodtype,
+    //       headers: {
+    //         "Content-Type": "application/json",
+    //       },
+    //       body: JSON.stringify(data),
+    //     });
 
-    const result = await response.json();
-    console.log("Success:", result);
-  } catch (error) {
-    console.error("Error:", error);
-  }
-}
-
-// const data = { username: "example" };
-// postJSON(data);
-
+    //     const result = await response.json();
+    //     console.log("Success:", result);
+    //   } catch (error) {
+    //     console.error("Error:", error);
+    //   }
+    // }
 
     function LogIn()
     {
@@ -101,12 +91,12 @@
         console.log(loginUsername.value);
         console.log(loginPassword.value);
 
-        const logindata = {
-            username: loginUsername.value,
-            password: loginPassword.value 
-        };
-        //dummy function 
-        postJSON(logindata,"https://flightlog-backend.herokuapp.com/user/register","POST" );
+        // const logindata = {
+        //     username: loginUsername.value,
+        //     password: loginPassword.value 
+        // };
+        // //dummy function wont know whether it works until theres a server
+        // postJSON(logindata,"https://flightlog-backend.herokuapp.com/user/authenticate","POST" );
     }
 
     function DisplayAll()
@@ -114,7 +104,6 @@
         var flightlogtable = document.getElementById('flightlogtable');
         DeleteAll();
         storeddata.forEach(NewEntry);
-        console.log(flightlogtable);
     }
 
     function DeleteAll()
@@ -122,7 +111,6 @@
         var flightlogtable = document.getElementById('flightlogtable');
         while(flightlogtable.rows.length > 1)
         {
-            console.log(flightlogtable.rows.length);
             flightlogtable.deleteRow(1);
         }
     }
@@ -135,7 +123,6 @@
         for(let i =1; i < flightlogtable.rows.length; i++)
         {
             var entry = [];
-            // // change all rows to text
             SwitchToText(flightlogtable.rows[i]);
             for(let j =0; j < 5; j++)
             {
@@ -150,7 +137,6 @@
             }
             newarray.push(entry);
         }
-        console.log(newarray);
         storeddata = newarray;
     }
 
@@ -161,7 +147,7 @@
         for (let i = 0; i < 7; i++) 
         {
             var createdcell = tablerow.insertCell(i);
-            if(arraydata[0]!= " ")
+            if(arraydata[i]!= " ")
             {
                 if(i < 5)
                 {
@@ -212,12 +198,10 @@
       flightlogtable.rows[x].cells[0].firstChild.tagName == "INPUT")
       {
         SwitchToText(flightlogtable.rows[x]);
-        flightlogtable.rows[x].cells[5].firstChild.innerText = "Update";
       }
       else
       {
             SwitchToInput(flightlogtable.rows[x]);
-            flightlogtable.rows[x].cells[5].firstChild.innerText = "Save";
       }
     }
 
@@ -275,10 +259,7 @@
         var flightlogtable = document.getElementById('flightlogtable');
       flightlogtable.deleteRow(x);
     }
-
-
     </script>
-
-
 </body>
+
 </html>
